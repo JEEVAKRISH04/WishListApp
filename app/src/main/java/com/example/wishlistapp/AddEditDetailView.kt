@@ -10,10 +10,15 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Scaffold
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.wishlistapp.data.Wish
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddEditDetailView(
@@ -32,11 +39,40 @@ fun AddEditDetailView(
     viewModel: WishViewModel,
     navController: NavController
 ){
+
+
+    val snackMessage = remember{
+        mutableStateOf("")
+    }
+    val scope = rememberCoroutineScope()
+    val scaffoldState = rememberScaffoldState()
+
+    if (id != 0L){
+        val wish = viewModel.getAWishById(id).collectAsState(initial = Wish(0L, "", ""))
+        viewModel.wishnameState = wish.value.name
+        viewModel.wishpositionState = wish.value.position
+        viewModel.wishcontactNumberState = wish.value.contactNumber
+        viewModel.wishgendersState = wish.value.genders
+        viewModel.wishDepartmentsState = wish.value.Department
+    }else{
+        viewModel.wishnameState = ""
+        viewModel.wishpositionState = ""
+        viewModel.wishcontactNumberState= ""
+        viewModel.wishgendersState = "Male"
+        viewModel.wishDepartmentsState = ""
+    }
+
+
+
+
+
+
     Scaffold(topBar = {AppBarView(title =
     if(id != 0L) stringResource(id = R.string.update_wish)
     else stringResource(id = R.string.add_wish)
     ) {navController.navigateUp()}
     },
+        scaffoldState = scaffoldState
 
         ) {
         Column(modifier = Modifier
@@ -47,29 +83,96 @@ fun AddEditDetailView(
         ){
             Spacer(modifier = Modifier.height(10.dp))
 
-            WishTextField(label = "Title",
-                value = viewModel.wishTitleState,
+            WishTextField(label = "Name",
+                value = viewModel.wishnameState,
                 onValueChanged = {
-                    viewModel.onWishTitleChanged(it)
+                    viewModel.onWishnameChanged(it)
                 } )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            WishTextField(label = "Description",
-                value = viewModel.wishDescriptionState,
+            WishTextField(label = "position",
+                value = viewModel.wishpositionState,
                 onValueChanged = {
-                    viewModel.onWishDescriptionChanged(it)
+                    viewModel.onWishpositionChanged(it)
+                } )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+
+            WishTextField(label = "contactNumber",
+                value = viewModel.wishcontactNumberState,
+                onValueChanged = {
+                    viewModel.onWishcontactNumberChanged(it)
+                } )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+
+//            GenderSelection(
+//                selectedGender = viewModel.wishgendersState,
+//                onGenderSelected = { gender ->
+//                    viewModel.onWishgendersChanged(gender)
+//                }
+//            )
+//
+
+            WishTextField(label = "genders",
+                value = viewModel.wishgendersState,
+                onValueChanged = {
+                    viewModel.onWishgendersChanged(it)
+                } )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+
+            WishTextField(label = "Department",
+                value = viewModel.wishDepartmentsState,
+                onValueChanged = {
+                    viewModel.onWishDepartmentsChanged(it)
                 } )
 
             Spacer(modifier = Modifier.height(10.dp))
             Button(onClick={
-                if(viewModel.wishTitleState.isNotEmpty() &&
-                    viewModel.wishDescriptionState.isNotEmpty()){
-                    //TODO UpdateWish
+                if(viewModel.wishnameState.isNotEmpty() &&
+                    viewModel.wishpositionState.isNotEmpty() &&
+                    viewModel.wishcontactNumberState.isNotEmpty() &&
+                    viewModel.wishgendersState.isNotEmpty() &&
+                    viewModel.wishDepartmentsState.isNotEmpty()){
+                    if(id != 0L){
+
+                        viewModel.updateWish(
+                            Wish(
+                                id = id,
+                                name =viewModel.wishnameState.trim() ,
+                                position =viewModel.wishpositionState.trim(),
+                                contactNumber =viewModel.wishcontactNumberState.trim(),
+                                genders =viewModel.wishgendersState.trim(),
+                                Department =viewModel.wishDepartmentsState.trim()
+
+                            )
+                            
+                        )
+                    }else{
+                        viewModel.addWish(
+                            Wish(
+                                name =viewModel.wishnameState.trim() ,
+                                position =viewModel.wishpositionState.trim(),
+                                contactNumber =viewModel.wishcontactNumberState.trim(),
+                                genders =viewModel.wishgendersState.trim(),
+                                Department =viewModel.wishDepartmentsState.trim()
+                            )
+                        )
+                        snackMessage.value = "Data has been Created"
+                    }
                 }else{
-                    // TODO AddWish
+                    snackMessage.value = "Enter details to create a data"
                 }
 
+                scope.launch {
+                    scaffoldState.snackbarHostState.showSnackbar(snackMessage.value)
+                    navController.navigateUp()
+                }
 
             }){
                 Text(
