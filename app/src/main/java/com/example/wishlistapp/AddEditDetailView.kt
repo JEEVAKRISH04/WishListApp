@@ -1,5 +1,6 @@
 package com.example.wishlistapp
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,17 +90,17 @@ fun AddEditDetailView(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-//            PositionDropdown(
-//                selectedPosition = viewModel.wishpositionState,
-//                onPositionSelected = { position -> viewModel.onWishpositionChanged(position) }
-//            )
-
-
-            WishTextField(
-                label = "Position",
-                value = viewModel.wishpositionState,
-                onValueChanged = { viewModel.onWishpositionChanged(it) }
+            PositionDropdown(
+                selectedPosition = viewModel.wishpositionState,
+                onPositionSelected = { viewModel.onWishpositionChanged(it) }
             )
+
+
+//            WishTextField(
+//                label = "Position",
+//                value = viewModel.wishpositionState,
+//                onValueChanged = { viewModel.onWishpositionChanged(it) }
+//            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -178,7 +182,67 @@ fun AddEditDetailView(
     }
 }
 
+@Composable
+fun PositionDropdown(
+    selectedPosition: String,
+    onPositionSelected: (String) -> Unit
+) {
+    val expanded = remember { mutableStateOf(false) }
+    val positions = listOf("Intern", "Trainee", "Worker", "Team Leader", "Manager")
 
+    Column   (modifier = Modifier
+            .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+    ){
+        OutlinedTextField(
+            value = selectedPosition,
+            onValueChange = {},
+            label = { Text("Position") },
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize(),
+            trailingIcon = {
+
+                androidx.compose.material.IconButton(onClick = { expanded.value = !expanded.value }) {
+                    androidx.compose.material.Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Filled.ArrowDropDown,
+                        contentDescription = "Dropdown Icon"
+                    )
+                }
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                textColor = Color.Black,
+                focusedBorderColor = colorResource(id = R.color.black),
+                unfocusedBorderColor = colorResource(id = R.color.black),
+                cursorColor = colorResource(id = R.color.black),
+                focusedLabelColor = colorResource(id = R.color.black),
+                unfocusedLabelColor = colorResource(id = R.color.black),
+            )
+        )
+
+        DropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false },
+            modifier = Modifier
+                .fillMaxWidth().wrapContentSize(Alignment.Center)
+                .background(Color.White)
+        ) {
+            positions.forEach { position ->
+                DropdownMenuItem(onClick = {
+                    onPositionSelected(position)
+                    expanded.value = false
+                }
+                ) {
+                    Text(text = position,
+                    modifier = Modifier.padding(8.dp),
+                        style = TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun GenderSelection(selectedGender: String, onGenderSelected: (String) -> Unit) {
@@ -207,14 +271,14 @@ fun WishTextField(
     label: String,
     value: String,
     onValueChanged: (String) -> Unit,
-    keyboardType: KeyboardType = KeyboardType.Text // Change: Added keyboardType parameter
+    keyboardType: KeyboardType = KeyboardType.Text
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChanged,
         label = { Text(text = label, color = Color.Black) },
         modifier = Modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType), // Change: Used keyboardType here
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = TextFieldDefaults.outlinedTextFieldColors(
             textColor = Color.Black,
             focusedBorderColor = colorResource(id = R.color.black),
